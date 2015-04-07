@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
@@ -26,18 +25,18 @@ public class RequestProcessor extends Thread {
 		try {
 			try {
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-				while (true) {
-					String input = in.readLine();
-					if (input == null || input.isEmpty()) {
-						break;
-					}
-					LOGGER.info(input);
-					//out.println(input.toUpperCase());
-				}
+				String firstHeaderLine = in.readLine();
 
-				out.println("Só alegria");
+				HttpMethod httpMethod = HttpMethod.parseFromHeader(firstHeaderLine);
+
+				String requestedPage = parseRequestedPage(firstHeaderLine);
+
+				LOGGER.info("Feita uma requisição " + httpMethod + " da página " + requestedPage);
+
+				ContentRetriever contentRetriever = new ContentRetriever(requestedPage);
+
+				socket.getOutputStream().write(contentRetriever.getContent());
 			} finally {
 				socket.close();
 			}
@@ -46,4 +45,9 @@ public class RequestProcessor extends Thread {
 		}
 
 	}
+
+	private String parseRequestedPage(final String firstHeaderLine){
+		return firstHeaderLine.substring(firstHeaderLine.indexOf(' ') + 1, firstHeaderLine.lastIndexOf(' '));
+	}
+
 }
