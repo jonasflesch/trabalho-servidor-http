@@ -5,7 +5,7 @@ package br.feevale.httpserver;
  */
 public enum HttpMethod {
 
-	GET, POST;
+	GET, POST, HEAD;
 
 	public static HttpMethod parseFromHeader(String line){
 		return valueOf(line.substring(0, line.indexOf(' ')));

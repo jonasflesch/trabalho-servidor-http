@@ -3,8 +3,7 @@ package br.feevale.httpserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -28,15 +27,16 @@ public class RequestProcessor extends Thread {
 
 				String firstHeaderLine = in.readLine();
 
-				HttpMethod httpMethod = HttpMethod.parseFromHeader(firstHeaderLine);
+				if(firstHeaderLine != null && !firstHeaderLine.isEmpty()){
+					HttpMethod httpMethod = HttpMethod.parseFromHeader(firstHeaderLine);
 
-				String requestedPage = parseRequestedPage(firstHeaderLine);
+					if(httpMethod == null || httpMethod != HttpMethod.GET){
+						writeHeaders(HttpResponseCode.NOT_IMPLEMENTED);
+					} else {
+						get(firstHeaderLine, httpMethod);
+					}
+				}
 
-				LOGGER.info("Feita uma requisição " + httpMethod + " da página " + requestedPage);
-
-				ContentRetriever contentRetriever = new ContentRetriever(requestedPage);
-
-				socket.getOutputStream().write(contentRetriever.getContent());
 			} finally {
 				socket.close();
 			}
@@ -44,6 +44,36 @@ public class RequestProcessor extends Thread {
 			LOGGER.error("Erro não tratado", e);
 		}
 
+	}
+
+	private void get(String firstHeaderLine, HttpMethod httpMethod) throws IOException {
+		String requestedPage = parseRequestedPage(firstHeaderLine);
+
+		LOGGER.info("Feita uma requisição " + httpMethod + " da página " + requestedPage);
+
+		ContentRetriever contentRetriever = new ContentRetriever(requestedPage);
+
+		byte[] content = contentRetriever.getContent();
+
+		HttpResponseCode httpResponseCode;
+
+		if(content == null){
+			httpResponseCode = HttpResponseCode.NOT_FOUND;
+		} else {
+			httpResponseCode = HttpResponseCode.OK;
+		}
+
+		writeHeaders(httpResponseCode);
+
+		if(content != null){
+			socket.getOutputStream().write(content);
+		}
+	}
+
+	public void writeHeaders(final HttpResponseCode httpResponseCode) throws IOException {
+		//TODO imprimir todos os headers
+		socket.getOutputStream().write(("HTTP/1.1 " + httpResponseCode.getStatusCode() + "  " + httpResponseCode.getStatusText() + "\n").getBytes("UTF-8"));
+		socket.getOutputStream().write("\n".getBytes());
 	}
 
 	private String parseRequestedPage(final String firstHeaderLine){
