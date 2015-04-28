@@ -12,9 +12,17 @@ public class HttpServer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(HttpServer.class);
 
+	/**
+	 * Método principal do servidor.
+	 *
+	 * Recebe como único argumento o caminho do filesystem onde estão os arquivos a serem servidos
+	 *
+	 * */
 	public static void main(String... args){
 		try {
-			LOGGER.info("Iniciando o servidor");
+			LOGGER.info("Iniciando o servidor. Caminho base: " + args[0]);
+			Configuration.getInstance().setBasePath(args[0]);
+
 			ServerSocket serverSocket = new ServerSocket(8080);
 			try {
 				while(true){

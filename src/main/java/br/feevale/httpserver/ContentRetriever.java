@@ -17,8 +17,6 @@ public class ContentRetriever {
 
 	private final String requestedPath;
 
-	private final static String basePath = "/Users/jonasflesch/Documents/trabalho-servidor-http/content"; //TODO tornar configurável
-
 	public ContentRetriever(final String requestedPath){
 		if("/".equals(requestedPath)){
 			this.requestedPath = "/index.html";
@@ -30,7 +28,7 @@ public class ContentRetriever {
 	public byte[] getContent(){
 		try {
 			String decodedRequestPath = URLDecoder.decode(requestedPath, "UTF-8");
-			Path path = Paths.get(basePath + decodedRequestPath);
+			Path path = Paths.get(Configuration.getInstance().getBasePath() + decodedRequestPath);
 			return Files.readAllBytes(path);
 		} catch (final Exception e){
 			LOGGER.info("Path " + requestedPath + " não encontrado");
