@@ -29,7 +29,7 @@ public class ContentRetriever {
 		try {
 			String decodedRequestPath = URLDecoder.decode(requestedPath, "UTF-8");
 			Path path = Paths.get(Configuration.getInstance().getBasePath() + decodedRequestPath);
-			return Files.readAllBytes(path);
+			return Files.readAllBytes(path); //TODO não carregar todo o conteúdo para a memória
 		} catch (final Exception e){
 			LOGGER.info("Path " + requestedPath + " não encontrado");
 			return null;
